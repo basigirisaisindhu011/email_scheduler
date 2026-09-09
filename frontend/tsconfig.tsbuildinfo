@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/layout.tsx","./src/context/authcontext.tsx","./src/pages/composeemail.tsx","./src/pages/dashboard.tsx","./src/pages/failedemails.tsx","./src/pages/login.tsx","./src/pages/register.tsx","./src/pages/scheduledemails.tsx","./src/pages/sentemails.tsx","./src/services/api.ts","./src/types/index.ts"],"version":"5.9.3"}
