@@ -1,4 +1,4 @@
-import IORedis from 'ioredis';
+import IORedis, { RedisOptions } from 'ioredis';
 import net from 'node:net';
 import { env } from './env.js';
 
@@ -25,6 +25,11 @@ const checkPortOpen = (port: number, host: string): Promise<boolean> => {
 };
 
 export const ensureRedisServer = async () => {
+  if (env.redisUrl || (env.redisHost !== 'localhost' && env.redisHost !== '127.0.0.1')) {
+    console.log('Using remote/Upstash Redis server.');
+    return;
+  }
+
   const isOpen = await checkPortOpen(env.redisPort, env.redisHost);
   if (!isOpen) {
     console.log(`Redis port ${env.redisPort} not active. Starting embedded Redis Memory Server...`);
@@ -38,13 +43,38 @@ export const ensureRedisServer = async () => {
   }
 };
 
-export const redis = new IORedis({
-  host: env.redisHost,
-  port: env.redisPort,
-  password: env.redisPassword || undefined,
-  maxRetriesPerRequest: null,
-  enableReadyCheck: true,
-  retryStrategy(times) {
-    return Math.min(times * 100, 3000);
-  },
+const createRedisClient = (): IORedis => {
+  const commonOptions: RedisOptions = {
+    maxRetriesPerRequest: null,
+    enableReadyCheck: false,
+    retryStrategy(times) {
+      return Math.min(times * 100, 3000);
+    },
+  };
+
+  if (env.redisUrl) {
+    const isTls = env.redisUrl.startsWith('rediss://');
+    return new IORedis(env.redisUrl, {
+      ...commonOptions,
+      ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
+    });
+  }
+
+  const isTls = env.redisTls || (env.redisHost && env.redisHost.includes('upstash.io'));
+  return new IORedis({
+    host: env.redisHost,
+    port: env.redisPort,
+    password: env.redisPassword || undefined,
+    ...commonOptions,
+    ...(isTls ? { tls: { rejectUnauthorized: false } } : {}),
+  });
+};
+
+export const redis = createRedisClient();
+
+redis.on('error', (err) => {
+  if (err.message.includes('ECONNREFUSED')) {
+    return;
+  }
+  console.error('[Redis Error]', err.message);
 });

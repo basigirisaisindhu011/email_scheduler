@@ -5,9 +5,11 @@ dotenv.config();
 export const env = {
   port: Number(process.env.PORT || 5000),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/email_scheduler',
+  redisUrl: process.env.REDIS_URL || undefined,
   redisHost: process.env.REDIS_HOST || 'localhost',
   redisPort: Number(process.env.REDIS_PORT || 6379),
   redisPassword: process.env.REDIS_PASSWORD || undefined,
+  redisTls: process.env.REDIS_TLS === 'true' || process.env.REDIS_TLS === '1',
   jwtSecret: process.env.JWT_SECRET || 'development-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
   frontendUrl: process.env.FRONTEND_URL || 'http://localhost:5173',
