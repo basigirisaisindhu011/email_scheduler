@@ -21,6 +21,15 @@ export const normalizeRedisUrl = (rawUrl?: string): string | undefined => {
   return isPlaceholder ? undefined : value;
 };
 
+export const normalizeCredential = (rawVal?: string): string | undefined => {
+  if (!rawVal) return undefined;
+  const value = rawVal.trim();
+  if (!value) return undefined;
+  const placeholderPatterns = ['your_ethereal', 'placeholder', 'example.com', 'your_username', 'your_password'];
+  const isPlaceholder = placeholderPatterns.some((pattern) => value.toLowerCase().includes(pattern.toLowerCase()));
+  return isPlaceholder ? undefined : value;
+};
+
 export const env = {
   port: Number(process.env.PORT || 5000),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/email_scheduler',
@@ -37,6 +46,6 @@ export const env = {
   emailRateLimitDuration: Number(process.env.EMAIL_RATE_LIMIT_DURATION || 1000),
   etherealHost: process.env.ETHEREAL_HOST || 'smtp.ethereal.email',
   etherealPort: Number(process.env.ETHEREAL_PORT || 587),
-  etherealUser: process.env.ETHEREAL_USER || '',
-  etherealPass: process.env.ETHEREAL_PASS || '',
+  etherealUser: normalizeCredential(process.env.ETHEREAL_USER),
+  etherealPass: normalizeCredential(process.env.ETHEREAL_PASS),
 };

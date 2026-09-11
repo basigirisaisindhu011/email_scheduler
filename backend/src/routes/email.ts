@@ -59,7 +59,7 @@ router.get('/emails/scheduled', async (req: Request, res: Response, next: NextFu
     if (!parsed.success) {
       return res.status(400).json({ message: 'Validation failed', errors: parsed.error.flatten() });
     }
-    const result = await emailService.listEmails(req.user!.id, { ...parsed.data, status: 'SCHEDULED' });
+    const result = await emailService.listEmails(req.user!.id, { ...parsed.data, statuses: ['SCHEDULED', 'PROCESSING'] });
     return res.json(result);
   } catch (error) {
     next(error);

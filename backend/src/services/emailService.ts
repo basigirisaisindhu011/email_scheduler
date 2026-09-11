@@ -10,6 +10,7 @@ export const emailService = {
       page?: number;
       limit?: number;
       status?: 'SCHEDULED' | 'PROCESSING' | 'SENT' | 'FAILED' | 'CANCELLED';
+      statuses?: Array<'SCHEDULED' | 'PROCESSING' | 'SENT' | 'FAILED' | 'CANCELLED'>;
       search?: string;
       sortBy?: 'createdAt' | 'scheduledAt' | 'sentAt';
       order?: 'asc' | 'desc';
@@ -21,7 +22,11 @@ export const emailService = {
 
     const where: Prisma.ScheduledEmailWhereInput = {
       userId,
-      ...(query.status ? { status: query.status } : {}),
+      ...(query.statuses
+        ? { status: { in: query.statuses } }
+        : query.status
+        ? { status: query.status }
+        : {}),
       ...(query.search
         ? {
             OR: [
@@ -166,7 +171,9 @@ export const emailService = {
     };
 
     for (const item of counts) {
-      if (item.status === 'SCHEDULED') stats.scheduled = item._count.status;
+      if (item.status === 'SCHEDULED' || item.status === 'PROCESSING') {
+        stats.scheduled += item._count.status;
+      }
       if (item.status === 'SENT') stats.sent = item._count.status;
       if (item.status === 'FAILED') stats.failed = item._count.status;
       if (item.status === 'CANCELLED') stats.cancelled = item._count.status;
