@@ -1,5 +1,6 @@
 import test, { describe } from 'node:test';
 import assert from 'node:assert/strict';
+import { normalizeRedisUrl } from '../config/env.js';
 import { createEmailSchema, rescheduleEmailSchema, emailQuerySchema } from '../validators/email.js';
 
 describe('Email Validation Schemas', () => {
@@ -56,5 +57,11 @@ describe('Email Validation Schemas', () => {
       assert.strictEqual(result.data.limit, 10);
       assert.strictEqual(result.data.sortBy, 'createdAt');
     }
+  });
+
+  test('treats placeholder redis urls as unset', () => {
+    const placeholderUrl = 'rediss://default:YOUR_UPSTASH_PASSWORD@YOUR_UPSTASH_HOST.upstash.io:6379';
+    assert.strictEqual(normalizeRedisUrl(placeholderUrl), undefined);
+    assert.strictEqual(normalizeRedisUrl('redis://localhost:6379'), 'redis://localhost:6379');
   });
 });

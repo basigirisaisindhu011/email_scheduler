@@ -290,12 +290,19 @@ The Swagger UI documents the authentication, scheduling, list, cancellation, and
 
 This project is prepared for deployment using a conventional three-part setup:
 
-- Frontend: Vercel
-- Backend: Render / Railway / any Node host
-- Database: Neon / Render Postgres
-- Redis: Upstash / Redis Cloud
+- **Frontend**: Vercel (monorepo root or `frontend` workspace)
+- **Backend**: Render / Railway / any Node host
+- **Database**: Neon / PostgreSQL
+- **Redis**: Upstash / Redis Cloud
 
-The BullMQ worker must run as a separate long-lived service. It should not be deployed as a serverless-only function that does not remain active.
+### Vercel Deployment Instructions
+
+1. Import your GitHub repository into Vercel.
+2. The root [`vercel.json`](file:///c:/Users/well/Documents/email_scheduler/vercel.json) and [`frontend/vercel.json`](file:///c:/Users/well/Documents/email_scheduler/frontend/vercel.json) are pre-configured to automatically build Vite output and route client-side paths (`/scheduled`, `/sent`, `/failed`, etc.) without `404 NOT_FOUND` errors.
+3. In Vercel Project Settings -> Environment Variables, add:
+   - `VITE_API_URL`: Your backend API URL (e.g. `https://email-scheduler-api.onrender.com/api`)
+
+The BullMQ worker must run as a separate long-lived service (via Render / Railway / Docker). It should not be deployed as a serverless-only function.
 
 ## Assignment Requirement Mapping
 

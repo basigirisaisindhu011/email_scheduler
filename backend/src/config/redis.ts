@@ -72,8 +72,19 @@ const createRedisClient = (): IORedis => {
 
 export const redis = createRedisClient();
 
+export const stopRedisServer = async () => {
+  if (memoryServerInstance) {
+    try {
+      await memoryServerInstance.stop();
+      memoryServerInstance = null;
+    } catch {
+      // Ignore cleanup error
+    }
+  }
+};
+
 redis.on('error', (err) => {
-  if (err.message.includes('ECONNREFUSED')) {
+  if (err.message?.includes('ECONNREFUSED') || err.name === 'AggregateError' || err.message?.includes('closed')) {
     return;
   }
   console.error('[Redis Error]', err.message);

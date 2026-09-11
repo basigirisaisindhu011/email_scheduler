@@ -177,10 +177,17 @@ export const emailService = {
 
   async reconcileScheduledJobs() {
     const emails = await prisma.scheduledEmail.findMany({
-      where: { status: 'SCHEDULED' },
+      where: { status: { in: ['SCHEDULED', 'PROCESSING'] } },
     });
 
     for (const email of emails) {
+      if (email.status === 'PROCESSING') {
+        await prisma.scheduledEmail.update({
+          where: { id: email.id },
+          data: { status: 'SCHEDULED' },
+        });
+      }
+
       if (!email.jobId) {
         const newJob = await addEmailJob(email.id, email.scheduledAt);
         const jobIdStr = newJob.id ? String(newJob.id) : `email-${email.id}`;

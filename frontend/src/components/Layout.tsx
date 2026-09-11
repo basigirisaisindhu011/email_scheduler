@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { ApiConfigModal } from './ApiConfigModal';
 import {
   LayoutDashboard,
   Send,
@@ -11,12 +12,14 @@ import {
   Menu,
   X,
   Mail,
+  Server,
 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [apiModalOpen, setApiModalOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -105,6 +108,14 @@ export const Layout: React.FC = () => {
           </div>
 
           <button
+            onClick={() => setApiModalOpen(true)}
+            className="w-full flex items-center justify-center space-x-2 px-3 py-1.5 text-xs font-medium text-slate-400 hover:text-indigo-400 hover:bg-slate-900 rounded-xl transition-colors border border-slate-800"
+          >
+            <Server className="w-3.5 h-3.5" />
+            <span>API Settings</span>
+          </button>
+
+          <button
             onClick={handleLogout}
             className="w-full flex items-center justify-center space-x-2 px-3 py-2 text-sm font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-colors border border-transparent hover:border-rose-500/20"
           >
@@ -112,6 +123,7 @@ export const Layout: React.FC = () => {
             <span>Sign Out</span>
           </button>
         </div>
+        <ApiConfigModal isOpen={apiModalOpen} onClose={() => setApiModalOpen(false)} />
       </aside>
 
       {/* Main Content Area */}

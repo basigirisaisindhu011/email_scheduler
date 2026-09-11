@@ -15,7 +15,24 @@ export const app = express();
 
 app.use(
   cors({
-    origin: env.frontendUrl,
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      const configuredFrontend = (env.frontendUrl || 'https://email-scheduler-frontend-gamma.vercel.app').replace(/\/$/, '');
+      const incomingOrigin = origin.replace(/\/$/, '');
+
+      const isAllowed =
+        incomingOrigin === configuredFrontend ||
+        incomingOrigin === 'https://email-scheduler-frontend-gamma.vercel.app' ||
+        incomingOrigin.endsWith('.vercel.app') ||
+        incomingOrigin === 'http://localhost:5173' ||
+        incomingOrigin === 'http://localhost:3000' ||
+        process.env.NODE_ENV !== 'production';
+
+      if (isAllowed) {
+        return callback(null, true);
+      }
+      return callback(new Error('Not allowed by CORS'));
+    },
     credentials: true,
   }),
 );

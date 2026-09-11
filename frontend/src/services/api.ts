@@ -8,22 +8,57 @@ import {
   User,
 } from '../types';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const DEFAULT_DEPLOYED_BACKEND_URL = 'https://email-scheduler-backend-y0uj.onrender.com/api';
+
+export const getApiBaseUrl = (): string => {
+  const customUrl = localStorage.getItem('custom_api_url');
+  if (customUrl) return customUrl;
+
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && envUrl !== 'http://localhost:5000/api') {
+    return envUrl;
+  }
+
+  return DEFAULT_DEPLOYED_BACKEND_URL;
+};
+
+export const setApiBaseUrl = (url: string) => {
+  const cleanUrl = url.trim().replace(/\/$/, '');
+  if (!cleanUrl) {
+    localStorage.removeItem('custom_api_url');
+  } else {
+    localStorage.setItem('custom_api_url', cleanUrl.endsWith('/api') ? cleanUrl : `${cleanUrl}/api`);
+  }
+};
 
 export const api = axios.create({
-  baseURL: API_URL,
+  baseURL: getApiBaseUrl(),
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
 api.interceptors.request.use((config) => {
+  config.baseURL = getApiBaseUrl();
   const token = localStorage.getItem('token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      error.customMessage = 'Backend API request timed out. Please try again.';
+    } else if (!error.response) {
+      error.customMessage = `Unable to connect to backend server at ${getApiBaseUrl()}. Please verify connection.`;
+    }
+    return Promise.reject(error);
+  },
+);
 
 export const authService = {
   async register(name: string, email: string, password: string): Promise<AuthResponse> {

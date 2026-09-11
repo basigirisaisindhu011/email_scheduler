@@ -54,7 +54,7 @@ export const createQueueWorker = (handler: (job: Job) => Promise<void>) => {
       await handler(job);
     },
     {
-      connection: redis,
+      connection: redis.duplicate({ maxRetriesPerRequest: null }),
       concurrency: env.workerConcurrency,
       limiter: {
         max: env.emailRateLimitMax,

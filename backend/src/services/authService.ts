@@ -6,7 +6,8 @@ import { AppError } from '../utils/errors.js';
 
 export const authService = {
   async register(name: string, email: string, password: string) {
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) {
       throw new AppError('Email is already registered', 409);
     }
@@ -14,8 +15,8 @@ export const authService = {
     const passwordHash = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: normalizedEmail,
         passwordHash,
       },
     });
@@ -31,7 +32,8 @@ export const authService = {
   },
 
   async login(email: string, password: string) {
-    const user = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
       throw new AppError('Invalid email or password', 401);
     }

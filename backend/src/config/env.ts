@@ -2,10 +2,29 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+export const normalizeRedisUrl = (rawUrl?: string): string | undefined => {
+  if (!rawUrl) return undefined;
+
+  const value = rawUrl.trim();
+  if (!value) return undefined;
+
+  const placeholderPatterns = [
+    'YOUR_UPSTASH',
+    'your_upstash',
+    'YOUR_REDIS',
+    'your_redis',
+    'placeholder',
+    'example.com',
+  ];
+
+  const isPlaceholder = placeholderPatterns.some((pattern) => value.toLowerCase().includes(pattern.toLowerCase()));
+  return isPlaceholder ? undefined : value;
+};
+
 export const env = {
   port: Number(process.env.PORT || 5000),
   databaseUrl: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/email_scheduler',
-  redisUrl: process.env.REDIS_URL || undefined,
+  redisUrl: normalizeRedisUrl(process.env.REDIS_URL),
   redisHost: process.env.REDIS_HOST || 'localhost',
   redisPort: Number(process.env.REDIS_PORT || 6379),
   redisPassword: process.env.REDIS_PASSWORD || undefined,

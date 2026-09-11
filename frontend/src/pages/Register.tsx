@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, User as UserIcon, UserPlus, AlertCircle } from 'lucide-react';
+import { ApiConfigModal } from '../components/ApiConfigModal';
+import { Mail, Lock, User as UserIcon, UserPlus, AlertCircle, Server } from 'lucide-react';
 import { toast } from 'sonner';
 
 export const Register: React.FC = () => {
@@ -11,6 +12,7 @@ export const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiModalOpen, setApiModalOpen] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -35,7 +37,23 @@ export const Register: React.FC = () => {
       toast.success('Account created successfully!');
       navigate('/dashboard');
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Registration failed. Please try again.';
+      let msg = 'Registration failed. Please try again.';
+      if (err.response?.data) {
+        const data = err.response.data;
+        if (data.message) {
+          msg = data.message;
+        } else if (data.errors?.fieldErrors) {
+          const fieldErrors = data.errors.fieldErrors;
+          const firstField = Object.keys(fieldErrors)[0];
+          if (firstField && fieldErrors[firstField]?.length > 0) {
+            msg = `${firstField}: ${fieldErrors[firstField][0]}`;
+          }
+        }
+      } else if (err.customMessage) {
+        msg = err.customMessage;
+      } else if (err.message) {
+        msg = err.message;
+      }
       setError(msg);
       toast.error(msg);
     } finally {
@@ -146,13 +164,24 @@ export const Register: React.FC = () => {
           </button>
         </form>
 
-        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-800">
-          Already have an account?{' '}
-          <Link to="/login" className="text-indigo-400 hover:underline font-medium">
-            Sign in here
-          </Link>
+        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-800 flex items-center justify-between">
+          <span>
+            Already have an account?{' '}
+            <Link to="/login" className="text-indigo-400 hover:underline font-medium">
+              Sign in
+            </Link>
+          </span>
+          <button
+            type="button"
+            onClick={() => setApiModalOpen(true)}
+            className="flex items-center space-x-1 text-slate-400 hover:text-indigo-400 underline"
+          >
+            <Server className="w-3 h-3" />
+            <span>API Settings</span>
+          </button>
         </div>
       </div>
+      <ApiConfigModal isOpen={apiModalOpen} onClose={() => setApiModalOpen(false)} />
     </div>
   );
 };
